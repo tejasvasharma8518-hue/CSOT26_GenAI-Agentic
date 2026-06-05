@@ -27,17 +27,47 @@ def run_chatbot():
     messages = [
         {"role": "system", "content": "You are a helpful assistant."}
     ]
+    last_usage = None
+    
 
     print("Chat started. Type 'exit' to quit.\n")
 
     while True:
-        # TODO: take user input
-        # TODO: append the user turn to messages
-        # TODO: call the API with the full messages list
-        # TODO: extract the assistant's reply
-        # TODO: append the assistant turn to messages
-        # TODO: print the reply
-        pass
+        user_input = input("You: ")
+
+        if user_input == "/tokens":
+            print(last_usage)
+            continue
+
+        if user_input == "/reset":
+            messages = [
+                {"role": "system", "content": "You are a helpful assistant."}
+            ]
+            print("Conversation history cleared.")
+            continue
+
+        if user_input.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
+
+        messages.append(
+            {"role": "user", "content": user_input}
+        )
+
+        response = client.chat.completions.create(
+            model="openai/gpt-oss-120b:free",
+            messages=messages
+        )
+
+        last_usage = response.usage
+
+        assistant_reply = response.choices[0].message.content
+
+        messages.append(
+            {"role": "assistant", "content": assistant_reply}
+        )
+
+        print(f"Bot: {assistant_reply}")        
 
 if __name__ == "__main__":
     run_chatbot()
