@@ -1,10 +1,5 @@
-# Week 1 Submission
+# SUBMISSION
 
-## Name
-
-Tejasva Sharma
-
----
 
 ## Objective
 
