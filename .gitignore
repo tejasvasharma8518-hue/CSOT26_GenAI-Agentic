@@ -1,2 +1,4 @@
-FULL_PLAN.md.env
 .env
+.alphaxiv_tokens.json
+venv/
+__pycache__/
