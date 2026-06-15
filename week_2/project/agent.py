@@ -4,6 +4,21 @@ import trafilatura
 from openai import OpenAI
 from dotenv import load_dotenv
 
+import asyncio
+import httpx
+
+from mcp import ClientSession
+from mcp.client.auth import OAuthClientProvider
+from mcp.client.streamable_http import streamable_http_client
+from mcp.shared.auth import OAuthClientMetadata
+from mcp_test import (
+    ALPHAXIV_MCP_URL,
+    REDIRECT_URI,
+    FileTokenStorage,
+    open_browser,
+    wait_for_callback,
+)
+
 load_dotenv()
 
 client = OpenAI(
@@ -14,6 +29,53 @@ client = OpenAI(
 SERPER_API_KEY = os.environ["SERPER_API_KEY"]
 
 MODEL = "openai/gpt-oss-120b:free"
+
+
+
+async def get_paper_research(query):
+    storage = FileTokenStorage()
+
+    auth = OAuthClientProvider(
+        server_url=ALPHAXIV_MCP_URL,
+        client_metadata=OAuthClientMetadata(
+            client_name="Research Agent",
+            redirect_uris=[REDIRECT_URI],
+            grant_types=["authorization_code", "refresh_token"],
+            response_types=["code"],
+            scope="read",
+        ),
+        storage=storage,
+        redirect_handler=open_browser,
+        callback_handler=wait_for_callback,
+    )
+
+    async with httpx.AsyncClient(
+        auth=auth,
+        follow_redirects=True,
+        timeout=60,
+    ) as http:
+
+        async with streamable_http_client(
+            ALPHAXIV_MCP_URL,
+            http_client=http,
+        ) as (read, write, _):
+
+            async with ClientSession(read, write) as session:
+
+                await session.initialize()
+
+                discover_result = await session.call_tool(
+                    "discover_papers",
+                    {
+                        "question": query,
+                        "keywords": query.split()[:3],
+                        "difficulty": 5,
+                    }
+                )
+
+                return str(discover_result)
+
+               
 
 
 def web_search(query, num_results=5):
@@ -101,32 +163,43 @@ Provide a concise answer.
 def main():
     question = input("Research Question: ")
 
-    print("\nSearching...\n")
-
-    results = web_search(question)
-
-    if not results:
-        print("No search results found.")
-        return
-
-    top_result = results[0]
-
-    print("Top Result:")
-    print(top_result["title"])
-    print(top_result["link"])
-
-    print("\nFetching page...\n")
-
-    content = web_fetch(top_result["link"])
-
-    print("Generating answer...\n")
-
-    answer = ask_llm(question, content)
+    answer = asyncio.run(
+        research_question(question)
+    )
 
     print("=" * 60)
     print(answer)
     print("=" * 60)
 
+
+async def research_question(question):
+    results = web_search(question)
+
+    if not results:
+        return "No search results found."
+
+    top_result = results[0]
+
+    content = web_fetch(top_result["link"])
+
+    paper_content = await get_paper_research(question)
+
+    combined_context = f"""
+WEB SOURCE:
+
+{content}
+
+PAPER SOURCE:
+
+ {paper_content}
+"""
+
+    answer = ask_llm(
+        question,
+        combined_context
+    )
+
+    return answer
 
 if __name__ == "__main__":
     main()

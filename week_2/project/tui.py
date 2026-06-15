@@ -30,6 +30,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Header, Footer, Input, RichLog
 from textual.containers import Vertical
+from agent import research_question
 
 load_dotenv()
 
@@ -162,7 +163,11 @@ class ChatApp(App):
         log = self.query_one("#log", RichLog)
 
         try:
-            reply = call_model(self.messages)
+            latest_question = self.messages[-1]["content"]
+
+            reply = await research_question(
+                latest_question
+            )
 
             self.messages.append(
                 {
@@ -176,16 +181,10 @@ class ChatApp(App):
                 MAX_HISTORY_TURNS
             )
 
-            self.call_from_thread(
-                log.write,
-                f"[Agent] {reply}\n"
-            )
+            log.write(f"[Agent] {reply}\n")
 
         except Exception as e:
-            self.call_from_thread(
-                log.write,
-                f"[Error] {e}\n"
-            )
+            log.write(f"[Error] {e}\n")         
 
     # -----------------------------------------------------------------------
     # Actions (bound to keyboard shortcuts)

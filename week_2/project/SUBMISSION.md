@@ -27,6 +27,17 @@ One design decision I made was limiting the amount of webpage content sent to th
 
 This reduced token usage and made the responses faster while still preserving the most relevant information from the page.
 
+# Features Implemented
+
+- Web search using Serper API
+- Web page extraction using Trafilatura
+- AlphaXiv MCP integration
+- Research workflow combining web search and research papers
+- Textual TUI interface
+- Multi-turn conversation support
+- Non-blocking UI using Textual workers
+- Conversation history management
+
 # Something That Surprised Me
 
 The most surprising part of this week's work was MCP authentication. Initially, I assumed that connecting to the AlphaXiv MCP server would only require the server URL. However, I kept receiving 401 Unauthorized errors even though the URL was correct.
