@@ -1,55 +1,190 @@
 # Week 2 Submission
 
-# What I Built
+## What I Built
 
-For this week's project, I built a terminal-based research assistant that can search the web, read webpages, and generate answers based on the information it finds. The project combines the concepts covered throughout the week, including tool calling, agent loops, web search, web fetching, and Textual-based terminal interfaces.
+For Week 2, I built a research assistant that can search the web, retrieve information from webpages, discover relevant research papers, and generate answers based on the information it collects. I also integrated everything into a Textual-based terminal interface so the agent can be used through a full-screen TUI instead of a simple command-line script.
 
-I first completed the three builds for the week. Build 1 helped me understand how tool calling works internally by manually parsing tool calls and dispatching them to Python functions. Build 2 used the OpenAI SDK's built-in tool calling support, which made the implementation much cleaner. Build 3 involved converting my Week 1 chatbot into a full-screen Textual application with conversation history, keyboard shortcuts, and background workers to keep the interface responsive during API calls.
+I started by completing all three builds for the week.
 
-For the project itself, I implemented web search using the Serper API and webpage fetching using Requests and Trafilatura. The agent first searches for relevant results, selects a result, fetches the page content, and then sends the gathered information to the language model to generate a final answer. The interface runs inside the terminal and allows users to interact with the agent in a more user-friendly way than a standard command-line script.
+### Build 1
 
-# How the Agent Loop Works
+In Build 1, I implemented tool calling manually. The model generated tool requests, and I had to parse them and call the correct Python functions myself. This helped me understand what actually happens behind the scenes when a model decides to use a tool.
 
-The overall flow of my implementation is:
+### Build 2
 
-1. Accept a research question from the user.
-2. Perform a web search using Serper.
-3. Select a search result and fetch the page content.
-4. Clean and truncate the webpage text before sending it to the model.
-5. Generate a response using the retrieved information.
-6. Display the answer to the user.
+In Build 2, I used the OpenAI SDK's built-in tool calling functionality. Compared to Build 1, the code became much cleaner because the SDK handled most of the tool execution workflow automatically.
 
-The project follows the same general agent pattern discussed in the lessons, where tools are used to gather information before producing a final answer.
+### Build 3
 
-# Design Decision
+In Build 3, I converted my Week 1 chatbot into a Textual-based terminal UI. The application supports:
 
-One design decision I made was limiting the amount of webpage content sent to the model. Raw webpages can be extremely large and contain a lot of unnecessary information such as navigation menus, advertisements, and page metadata. I used Trafilatura to extract the main content and truncated the result before sending it to the model.
+* Multi-turn conversations
+* Scrollable chat history
+* Keyboard shortcuts
+* Conversation memory
+* Background workers to prevent the UI from freezing while waiting for API responses
 
-This reduced token usage and made the responses faster while still preserving the most relevant information from the page.
+This gave me a much better user experience than interacting with the chatbot through a normal terminal.
 
-# Features Implemented
+### Final Project
 
-- Web search using Serper API
-- Web page extraction using Trafilatura
-- AlphaXiv MCP integration
-- Research workflow combining web search and research papers
-- Textual TUI interface
-- Multi-turn conversation support
-- Non-blocking UI using Textual workers
-- Conversation history management
+For the final project, I built a research assistant that combines several different components:
 
-# Something That Surprised Me
+* Web search using the Serper API
+* Webpage retrieval using Requests
+* Content extraction using Trafilatura
+* AlphaXiv MCP integration
+* OpenRouter for answer generation
+* Textual for the user interface
 
-The most surprising part of this week's work was MCP authentication. Initially, I assumed that connecting to the AlphaXiv MCP server would only require the server URL. However, I kept receiving 401 Unauthorized errors even though the URL was correct.
+The goal was to create a system that can gather information before generating an answer instead of relying entirely on the model's internal knowledge.
 
-After investigating further and discussing the issue with other students, I discovered that AlphaXiv uses OAuth authentication. Once I implemented the OAuth flow and logged in through the browser, the connection worked correctly and I was able to access the AlphaXiv tools and retrieve research papers.
+---
 
-Another issue I encountered was with keyboard shortcuts in the Textual application. Ctrl+L and Ctrl+K worked correctly, but Ctrl+Q conflicted with terminal and editor shortcuts in some environments, which made testing slightly confusing.
+## How the Research Workflow Works
 
-# Improvements With More Time
+The workflow of my project is:
 
-If I had more time, I would extend the agent so that it can repeatedly search, fetch multiple sources, compare information across pages, and automatically decide when it has enough information to answer. I would also integrate the AlphaXiv MCP tools directly into the research workflow so that the agent can combine academic papers and web results in the same response.
+1. The user enters a research question.
+2. The agent performs a web search using Serper.
+3. The most relevant search result is selected.
+4. The webpage content is downloaded and cleaned using Trafilatura.
+5. The AlphaXiv MCP server is queried to discover relevant research papers.
+6. The retrieved information is combined into a context.
+7. The language model generates a final answer.
+8. The answer is displayed to the user in the terminal interface.
 
-Another improvement would be adding streaming responses and a dedicated panel showing which tools are being called in real time. This would make it easier to understand the agent's reasoning process while it is working.
+This allows the agent to use external information sources before producing a response.
 
-Overall, this project helped me understand how agents actually work behind the scenes rather than treating tool calling as a black box. Building the loop manually and then using the SDK made the differences very clear and gave me a much better understanding of agent-based systems.
+---
+
+## MCP Integration
+
+One of the most interesting parts of the project was integrating the AlphaXiv MCP server.
+
+After connecting successfully, I was able to access tools such as:
+
+* discover_papers
+* get_paper_content
+* answer_pdf_queries
+* read_files_from_github_repository
+
+I mainly used AlphaXiv to retrieve research paper information related to the user's query. This allowed the project to go beyond simple web search and incorporate academic research into the workflow.
+
+Working with MCP was completely new for me, so getting it working felt like one of the biggest achievements of the assignment.
+
+---
+
+## Design Decisions
+
+### Reducing Webpage Noise
+
+Most webpages contain a lot of unnecessary content such as navigation bars, advertisements, footers, and menus.
+
+To avoid sending all of this to the model, I used Trafilatura to extract only the main article content before passing it to the LLM. This reduced token usage and improved response quality.
+
+### Keeping the UI Responsive
+
+Since web searches and API calls can take several seconds, I used Textual workers so that the interface would remain responsive while the agent was working.
+
+Without this, the UI would freeze every time a request was made.
+
+### Separating Logic and Interface
+
+I kept the research workflow separate from the TUI code. The TUI handles user interaction, while the research functions handle searching, fetching, paper discovery, and answer generation.
+
+This made debugging and testing much easier.
+
+---
+
+## Challenges Faced
+
+This project definitely involved more debugging than I expected.
+
+### MCP Authentication
+
+The biggest challenge was getting AlphaXiv MCP authentication working.
+
+At first I kept receiving 401 Unauthorized errors and assumed that I had configured the server URL incorrectly. After spending a lot of time debugging, I discovered that AlphaXiv uses OAuth authentication and requires a browser-based login flow.
+
+Once I implemented the OAuth process and token storage correctly, everything started working.
+
+### Async Issues in the TUI
+
+After connecting the research workflow to the Textual interface, I started running into asynchronous programming issues.
+
+One of the more frustrating errors was related to trying to start an event loop inside another event loop. Since Textual already runs asynchronously, I had to restructure parts of the code so that async functions were called correctly.
+
+This ended up teaching me a lot about how asynchronous Python actually works.
+
+### Git Problems
+
+Towards the end of the assignment, I also ran into Git issues while trying to push my final changes.
+
+My local branch and remote branch had diverged, which caused push failures and merge conflicts. Fixing this required inspecting commit history and carefully updating the repository without losing work.
+
+It was stressful to deal with close to the deadline, but I eventually got everything synced correctly.
+
+### Understanding MCP Tools
+
+Another challenge was figuring out the exact arguments expected by MCP tools.
+
+Several calls failed initially because I was passing incorrect parameters. I ended up creating small test scripts to inspect available tools and experiment with their inputs before integrating them into the project.
+
+---
+
+## Features Implemented
+
+* Serper web search integration
+* Requests-based webpage retrieval
+* Content extraction using Trafilatura
+* AlphaXiv MCP integration
+* Research paper discovery
+* OpenRouter LLM integration
+* Textual TUI interface
+* Multi-turn conversation support
+* Conversation history management
+* Keyboard shortcuts
+* Non-blocking UI using workers
+* OAuth authentication flow
+* Persistent token storage
+
+---
+
+## What Surprised Me
+
+Before starting the project, I assumed that most of the work would involve prompting the language model.
+
+In reality, the model integration was one of the easier parts.
+
+Most of my time was spent getting different systems to work together: authentication, APIs, MCP tools, asynchronous programming, web retrieval, debugging, and Git.
+
+The project made me realize that building AI applications involves much more engineering than simply calling a model API.
+
+Another thing that surprised me was how useful MCP can be once it's configured properly. Being able to access external tools through a common interface felt much more powerful than hardcoding everything directly into the application.
+
+---
+
+## Improvements With More Time
+
+If I had more time, there are several things I would like to improve.
+
+First, I would make the agent more autonomous. Currently the workflow follows a fixed sequence of steps. A future version could allow the model to decide when to search again, which sources to fetch, and when enough information has been collected.
+
+I would also like to fetch multiple webpages and compare information from different sources before generating an answer.
+
+Another improvement would be adding streaming responses so that users can see the answer being generated in real time.
+
+Finally, I would add a dedicated panel showing which tools are being called so that users can better understand what the agent is doing behind the scenes.
+
+---
+
+## Final Reflection
+
+This was probably the most challenging assignment I have worked on in the course so far, but it was also one of the most rewarding.
+
+I started the week thinking that AI agents were mostly about prompting models. After building the project, I now understand that a large part of agent development involves integrating tools, managing data flow, handling authentication, debugging APIs, and designing a good user experience.
+
+The MCP integration was particularly interesting because it was my first time connecting an external tool server to an AI workflow. Seeing the agent retrieve research papers and use them as part of its responses made the project feel much more realistic than a standard chatbot.
+
+Overall, the project gave me a much better understanding of how modern AI systems are built and how different components work together to create useful applications.
