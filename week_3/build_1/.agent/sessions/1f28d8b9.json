@@ -1,0 +1,19 @@
+{
+  "id": "1f28d8b9",
+  "title": "Quantum error correction",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are Research Desk, a helpful research assistant."
+    },
+    {
+      "role": "user",
+      "content": "What is a surface code?"
+    },
+    {
+      "role": "assistant",
+      "content": "A surface code is a type of quantum error correcting code."
+    }
+  ],
+  "updated_at": "2026-06-20T12:21:21.831674+00:00"
+}
