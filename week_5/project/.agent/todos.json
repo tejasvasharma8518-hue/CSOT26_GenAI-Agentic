@@ -1,0 +1,15 @@
+[
+  {
+    "title": "what is flask",
+    "description": "what is flask",
+    "verification": "git status",
+    "status": "pending"
+  },
+  {
+    "title": "/load_skill review",
+    "description": "/load_skill review",
+    "verification": "git status",
+    "status": "completed",
+    "evidence": "git status exit code 0"
+  }
+]

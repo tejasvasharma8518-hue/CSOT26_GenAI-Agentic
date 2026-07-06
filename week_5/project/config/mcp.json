@@ -1,0 +1,11 @@
+{
+  "servers": [
+    {
+      "name": "github",
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "enabled": true,
+      "api_key_env": "GITHUB_TOKEN"
+    }
+  ]
+}
