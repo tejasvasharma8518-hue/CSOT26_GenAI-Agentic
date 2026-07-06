@@ -1,0 +1,15 @@
+[
+  {
+    "title": "Fix login bug",
+    "description": "Investigate login failure",
+    "verification": "pytest tests/test_login.py",
+    "status": "completed",
+    "evidence": "pytest passed"
+  },
+  {
+    "title": "Run tests",
+    "description": "Run project tests",
+    "verification": "pytest",
+    "status": "pending"
+  }
+]
